@@ -5,6 +5,7 @@
 
 ## Set up primary generaotr
 /control/execute primary_generator.mac
+#/control/execute primary_generator_ion.mac
 
 ## Set up visulalization ennrionment
 /control/execute vis.mac
