@@ -7,16 +7,13 @@
 #include "G4VUserActionInitialization.hh"
 
 //------------------------------------------------------------------------------
-  class UserActionInitialization : public G4VUserActionInitialization
+class UserActionInitialization : public G4VUserActionInitialization
 //------------------------------------------------------------------------------
 {
-  public:
-    UserActionInitialization();
-    virtual ~UserActionInitialization();
+public:
+  UserActionInitialization();
+  ~UserActionInitialization() override;
 
-    virtual void Build() const;
+  void Build() const override;
 };
 #endif
-
-
-

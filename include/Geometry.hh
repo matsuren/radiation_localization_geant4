@@ -8,16 +8,16 @@
 class G4VPhysicalVolume;
 
 //------------------------------------------------------------------------------
-  class Geometry : public G4VUserDetectorConstruction
+class Geometry : public G4VUserDetectorConstruction
 //------------------------------------------------------------------------------
 {
-  public:
-    Geometry();
-   ~Geometry();
+public:
+  Geometry();
+  ~Geometry() override;
 
-    G4VPhysicalVolume* Construct();
+  G4VPhysicalVolume *Construct() override;
 
-  private:
-    G4VPhysicalVolume* ConstructDetector();
+private:
+  G4VPhysicalVolume *ConstructDetector();
 };
 #endif
