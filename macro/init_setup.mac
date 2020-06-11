@@ -4,8 +4,8 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ## Set up primary generaotr
-/control/execute primary_generator.mac
-#/control/execute primary_generator_ion.mac
+#/control/execute primary_generator.mac
+/control/execute primary_generator_ion.mac
 
 ## Set up visulalization ennrionment
 /control/execute vis.mac
@@ -14,4 +14,4 @@
 /control/execute verbose.mac
 
 ## Invoke the application
-/run/beamOn 0           # Only invokes initialization - no event generation
+/run/beamOn 0 # Only invokes initialization - no event generation

@@ -13,6 +13,8 @@
 #include "G4Tubs.hh"
 #include "G4VPhysicalVolume.hh"
 #include "G4VisAttributes.hh"
+#include "SensitiveVolume.hh"
+#include <G4SDManager.hh>
 
 //------------------------------------------------------------------------------
 Geometry::Geometry() = default;
@@ -98,6 +100,13 @@ G4VPhysicalVolume *Geometry::ConstructDetector()
   G4int copyNum_LogV = 1000; // Set ID number of LogV
   new G4PVPlacement(trans3D_LogV, "PhysVol_detector", logVol_detector,
                     physVol_World, false, copyNum_LogV);
+
+
+    // Sensitive volume
+    auto aSV = new SensitiveVolume("SensitiveVolume");
+  logVol_detector->SetSensitiveDetector(aSV);         // Add sensitivity to the logical volume
+    auto SDman = G4SDManager::GetSDMpointer();
+    SDman->AddNewDetector(aSV);
 
   // Return the physical world
   return physVol_World;

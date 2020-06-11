@@ -3,18 +3,17 @@
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #include "UserActionInitialization.hh"
 #include "PrimaryGenerator.hh"
+#include "RunAction.hh"
 
 //------------------------------------------------------------------------------
 UserActionInitialization::UserActionInitialization()
-    : G4VUserActionInitialization()
-{}
+    : G4VUserActionInitialization() {}
 
 //------------------------------------------------------------------------------
-UserActionInitialization::~UserActionInitialization()
-{}
+UserActionInitialization::~UserActionInitialization() {}
 
 //------------------------------------------------------------------------------
-void UserActionInitialization::Build() const
-{
+void UserActionInitialization::Build() const {
   SetUserAction(new PrimaryGenerator());
+  SetUserAction(new RunAction());
 }

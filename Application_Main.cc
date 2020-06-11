@@ -40,6 +40,9 @@ int main(int argc, char   **argv)
   if (argc == 1) { // Interactive mode - no command argument
     auto uiExec = new G4UIExecutive(argc, argv);
     uiManager->ApplyCommand("/control/execute init_setup.mac");
+    // Enable analysis
+    uiManager->ApplyCommand("/analysis/setActivation 0");
+    // Start GUI
     uiExec->SessionStart();
     delete uiExec;
   } else { // Batch mode - 1st command argument is a macro-filename

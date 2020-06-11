@@ -5,7 +5,8 @@
 
 ## Particle type
 /gun/particle ion
-/gun/ion 55 137 # Cs137
+/gun/ion 27 60 # Co60
+#/gun/ion 55 137 # Cs137
 #/gun/ion 92 235 # U235
 
 
