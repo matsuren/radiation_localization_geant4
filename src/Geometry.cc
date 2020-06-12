@@ -38,7 +38,9 @@ G4VPhysicalVolume *Geometry::ConstructDetector()
   // Get pointer to 'Material Manager'
   G4NistManager *materi_Man = G4NistManager::Instance();
 
-  // Define 'World Volume'
+  ////////////////////////////////////////////////////////
+  /// Define World Volume
+  ////////////////////////////////////////////////////////
   // Define the shape of solid
   G4double leng_X_World = 1.0 * m; // X-full-length of world
   G4double leng_Y_World = 1.0 * m; // Y-full-length of world
@@ -57,7 +59,9 @@ G4VPhysicalVolume *Geometry::ConstructDetector()
   G4PVPlacement *physVol_World = new G4PVPlacement(
       G4Transform3D(), "PhysVol_World", logVol_World, 0, false, copyNum_World);
 
-  // Define Detector
+  ////////////////////////////////////////////////////////
+  /// Define Detector
+  ////////////////////////////////////////////////////////
   // Define the shape of solid
   G4double leng_X_detector = 5.0 * cm;
   G4double leng_Y_detector = 5.0 * cm;
@@ -83,11 +87,19 @@ G4VPhysicalVolume *Geometry::ConstructDetector()
     materi_detector = CeBr3;
     break;
   }
-
   // Define logical volume
   G4LogicalVolume *logVol_detector = new G4LogicalVolume(
       solid_detector, materi_detector, "LogVol_detector", 0, 0, 0);
 
+  // Define aluminum container to block alpha and beta
+  // Define the shape of solid
+  auto solid_container = new G4Box(
+      "Solid_container", (leng_X_detector + 2.0 * mm) / 2.0,
+      (leng_Y_detector + 2.0 * mm) / 2.0, (leng_Z_detector + 2.0 * mm) / 2.0);
+  // Define logical volume (Container is Aluminun)
+  G4Material *materi_WaterCont = materi_Man->FindOrBuildMaterial("G4_Al");
+  auto logVol_container = new G4LogicalVolume(solid_container, materi_WaterCont,
+                                              "LogVol_container", 0, 0, 0);
   // Placement of logical volume
   G4double pos_X_LogV = 0.0 * cm; // X-location LogV
   G4double pos_Y_LogV = 0.0 * cm; // Y-location LogV
@@ -98,15 +110,18 @@ G4VPhysicalVolume *Geometry::ConstructDetector()
   G4Transform3D trans3D_LogV = G4Transform3D(rotMtrx_LogV, threeVect_LogV);
 
   G4int copyNum_LogV = 1000; // Set ID number of LogV
-  new G4PVPlacement(trans3D_LogV, "PhysVol_detector", logVol_detector,
-                    physVol_World, false, copyNum_LogV);
+  new G4PVPlacement(trans3D_LogV, logVol_detector, "PhysVol_detector",
+                    logVol_container, false, copyNum_LogV, true);
+  copyNum_LogV = 999; // Set ID number of LogV
+  new G4PVPlacement(trans3D_LogV, "PhysVol_container", logVol_container,
+                    physVol_World, false, copyNum_LogV, true);
 
+  // Sensitive volume
+  auto aSV = new SensitiveVolume("SensitiveVolume");
+  logVol_detector->SetSensitiveDetector(aSV); // Add sensitivity
 
-    // Sensitive volume
-    auto aSV = new SensitiveVolume("SensitiveVolume");
-  logVol_detector->SetSensitiveDetector(aSV);         // Add sensitivity to the logical volume
-    auto SDman = G4SDManager::GetSDMpointer();
-    SDman->AddNewDetector(aSV);
+  auto SDman = G4SDManager::GetSDMpointer();
+  SDman->AddNewDetector(aSV);
 
   // Return the physical world
   return physVol_World;
