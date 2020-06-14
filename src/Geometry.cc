@@ -42,9 +42,9 @@ G4VPhysicalVolume *Geometry::ConstructDetector()
   /// Define World Volume
   ////////////////////////////////////////////////////////
   // Define the shape of solid
-  G4double leng_X_World = 1.0 * m; // X-full-length of world
-  G4double leng_Y_World = 1.0 * m; // Y-full-length of world
-  G4double leng_Z_World = 1.0 * m; // Z-full-length of world
+  G4double leng_X_World = 0.7 * m; // X-full-length of world
+  G4double leng_Y_World = 0.7 * m; // Y-full-length of world
+  G4double leng_Z_World = 0.7 * m; // Z-full-length of world
   G4Box *solid_World = new G4Box("Solid_World", leng_X_World / 2.0,
                                  leng_Y_World / 2.0, leng_Z_World / 2.0);
 
@@ -52,12 +52,52 @@ G4VPhysicalVolume *Geometry::ConstructDetector()
   G4Material *materi_World = materi_Man->FindOrBuildMaterial("G4_AIR");
   G4LogicalVolume *logVol_World =
       new G4LogicalVolume(solid_World, materi_World, "LogVol_World");
-  //   logVol_World->SetVisAttributes (G4VisAttributes::Invisible);
+  logVol_World->SetVisAttributes(G4VisAttributes::Invisible);
 
   // Placement of logical volume
   G4int copyNum_World = 0; // Set ID number of world
   G4PVPlacement *physVol_World = new G4PVPlacement(
       G4Transform3D(), "PhysVol_World", logVol_World, 0, false, copyNum_World);
+
+  G4int copyNum_LogV = 1;
+  ////////////////////////////////////////////////////////
+  /// Define Lead box
+  ////////////////////////////////////////////////////////
+  G4LogicalVolume *logVol_lead_inside = nullptr;
+  if (false) {
+    // Define 'lead box'
+    // Define the shape of solid
+    G4double leng_X_lead = 16.0 * cm; // X-full-length of water box
+    G4double leng_Y_lead = 16.0 * cm; // Y-full-length of water box
+    G4double leng_Z_lead = 16.0 * cm; // Z-full-length of water box
+    auto solid_lead = new G4Box("Solid_lead", leng_X_lead / 2.0,
+                                leng_Y_lead / 2.0, leng_Z_lead / 2.0);
+
+    // Define logical volume
+    auto logVol_lead = new G4LogicalVolume(
+        solid_lead, materi_Man->FindOrBuildMaterial("G4_Pb"), "LogVol_lead", 0,
+        0, 0);
+    G4double pos_X_lead = 0.0 * cm; // X-location LogV
+    G4double pos_Y_lead = 0.0 * cm; // Y-location LogV
+    G4double pos_Z_lead = 0.0 * cm; // Z-location LogV
+    auto threeVect_lead = G4ThreeVector(pos_X_lead, pos_Y_lead, pos_Z_lead);
+    auto rotMtrx_lead = G4RotationMatrix();
+    auto trans3D_lead = G4Transform3D(rotMtrx_lead, threeVect_lead);
+    copyNum_LogV = 900; // Set ID number of LogV
+    new G4PVPlacement(trans3D_lead, "PhysVol_lead", logVol_lead, physVol_World,
+                      false, copyNum_LogV, true);
+
+    // lead inside
+    auto solid_lead_inside = new G4Box(
+        "Solid_lead_inside", (leng_X_lead - 6.0 * cm) / 2.0,
+        (leng_Y_lead - 6.0 * cm) / 2.0, (leng_Z_lead - 6.0 * cm) / 2.0);
+    logVol_lead_inside = new G4LogicalVolume(
+        solid_lead_inside, materi_Man->FindOrBuildMaterial("G4_AIR"),
+        "LogVol_lead_inside", 0, 0, 0);
+    copyNum_LogV = 901; // Set ID number of LogV
+    new G4PVPlacement(trans3D_lead, logVol_lead_inside, "PhysVol_lead_inside",
+                      logVol_lead, false, copyNum_LogV, true);
+  }
 
   ////////////////////////////////////////////////////////
   /// Define Detector
@@ -109,12 +149,19 @@ G4VPhysicalVolume *Geometry::ConstructDetector()
   G4RotationMatrix rotMtrx_LogV = G4RotationMatrix();
   G4Transform3D trans3D_LogV = G4Transform3D(rotMtrx_LogV, threeVect_LogV);
 
-  G4int copyNum_LogV = 1000; // Set ID number of LogV
+  copyNum_LogV = 1000; // Set ID number of LogV
   new G4PVPlacement(trans3D_LogV, logVol_detector, "PhysVol_detector",
                     logVol_container, false, copyNum_LogV, true);
   copyNum_LogV = 999; // Set ID number of LogV
-  new G4PVPlacement(trans3D_LogV, "PhysVol_container", logVol_container,
-                    physVol_World, false, copyNum_LogV, true);
+
+  if (logVol_lead_inside) {
+    // add inside lead box
+    new G4PVPlacement(trans3D_LogV, logVol_container, "PhysVol_container",
+                      logVol_lead_inside, false, copyNum_LogV, true);
+  } else {
+    new G4PVPlacement(trans3D_LogV, "PhysVol_container", logVol_container,
+                      physVol_World, false, copyNum_LogV, true);
+  }
 
   // Sensitive volume
   auto aSV = new SensitiveVolume("SensitiveVolume");
