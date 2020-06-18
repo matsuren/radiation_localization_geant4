@@ -8,7 +8,8 @@
 #include "G4UIExecutive.hh"
 #include "G4UImanager.hh"
 #include "G4VisExecutive.hh"
-#include "Shielding.hh"
+//#include "Shielding.hh"
+#include "FTFP_BERT.hh"
 
 //-------------------------------------------------------------------------------
 int main(int argc, char   **argv)
@@ -21,7 +22,8 @@ int main(int argc, char   **argv)
   runManager->SetUserInitialization(new Geometry);
 
   // Set up mandatory user initialization: Physics-List
-  runManager->SetUserInitialization(new Shielding);
+  //  runManager->SetUserInitialization(new Shielding);
+  runManager->SetUserInitialization(new FTFP_BERT);
 
   // Set up user initialization: User Actions
   runManager->SetUserInitialization(new UserActionInitialization);

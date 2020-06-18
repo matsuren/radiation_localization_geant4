@@ -1,0 +1,7 @@
+#------------------------------------------------------------------------------------
+/gps/particle gamma
+/gps/pos/type Point
+/gps/pos/centre 0.0  0.0  -5.0 cm
+/gps/ang/type iso
+/gps/ene/type Mono
+/gps/ene/mono 1 MeV
