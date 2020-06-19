@@ -16,7 +16,6 @@ SensitiveVolume::SensitiveVolume(G4String name) : G4VSensitiveDetector(name) {}
 SensitiveVolume::~SensitiveVolume() {}
 //------------------------------------------------------------------------------
 void SensitiveVolume::Initialize(G4HCofThisEvent *) {
-
   sum_eDep = 0.;
   sum_stepLength = 0.;
   G4cout << "==  Initialize sum_eDeps and sum_stepLengths   " << G4endl;
@@ -41,11 +40,18 @@ G4bool SensitiveVolume::ProcessHits(G4Step *aStep, G4TouchableHistory *) {
 
   G4StepPoint *pre = aStep->GetPreStepPoint();
   G4int copyNo = pre->GetPhysicalVolume()->GetCopyNo();
-
   // get total energy deposit in this step "edep"  and  accumulate it in
   // "sum_eDep"
   G4double edep = aStep->GetTotalEnergyDeposit();
   G4cout << " ## --- ProcessHits --- ## " << edep / keV << " keV" << G4endl;
+
+  if (SensitiveDetectorName == "SensitiveVolumePixel" && edep != 0.0) {
+    //    G4int copyNo_ = pre->GetTouchableHandle()->GetCopyNumber(2);
+    G4int replicaNo0 = pre->GetTouchableHandle()->GetReplicaNumber(0);
+    G4int replicaNo1 = pre->GetTouchableHandle()->GetReplicaNumber(1);
+    G4cout << "Pixel hit location: " << replicaNo0 << ", " << replicaNo1
+           << " Energy: " << edep / keV << " keV" << G4endl;
+  }
 
   // get step length and accumulate it
   G4double stepLength = 0.;

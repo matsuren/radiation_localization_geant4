@@ -3,9 +3,18 @@
 /gps/particle gamma
 /gps/pos/type Point
 /gps/pos/centre 0.0  0.0  -5.0 cm
-/gps/ang/type iso
+#/gps/ang/type iso
+/gps/ang/type cos
 /gps/ene/type Mono
 /gps/ene/mono 1 MeV
+# --- ion ----
+## Particle type
+#/gps/particle ion
+#/gps/ion 27 60 # Co60
+#/gps/ion 55 137 # Cs137
+#/gps/ion 92 235 # U235
+## Kinematical information
+#/gps/ene/mono 0.0 MeV               # For stationary decay
 
 #------------------------------------------------------------------------------------
 /gps/source/add 2 # add intensity x another source
