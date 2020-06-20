@@ -30,8 +30,15 @@ void SensitiveVolume::EndOfEvent(G4HCofThisEvent *) {
   if(sum_eDep/eV > 1.0 * eV){
     // save results
     G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+
+#ifdef ANALYSIS_HIST
     analysisManager->FillH1(0, sum_eDep);
     analysisManager->FillH1(1, sum_stepLength);
+#else
+    analysisManager->FillNtupleDColumn(0, sum_eDep);
+    analysisManager->FillNtupleDColumn(1, sum_stepLength);
+    analysisManager->AddNtupleRow();
+#endif
   }
 }
 

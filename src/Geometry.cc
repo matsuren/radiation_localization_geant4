@@ -239,8 +239,8 @@ G4VPhysicalVolume *Geometry::ConstructDetector()
       G4Transform3D(rotMtrx_LogV_PixEnvG, threeVect_LogV_PixEnvG);
 
   G4int copyNum_LogV_PixEnvG = 2000; // Set ID number of LogV_PixEnvG
-  new G4PVPlacement(trans3D_LogV_PixEnvG, "PhysVol_PixEnvG", logVol_PixEnvG,
-                    physVol_World, false, copyNum_LogV_PixEnvG);
+  //  new G4PVPlacement(trans3D_LogV_PixEnvG, "PhysVol_PixEnvG", logVol_PixEnvG,
+  //                    physVol_World, false, copyNum_LogV_PixEnvG);
 
   ////////////////////////////////////////////////////////
   /// Sensitive volume
