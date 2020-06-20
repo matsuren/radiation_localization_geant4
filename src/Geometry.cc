@@ -230,7 +230,7 @@ G4VPhysicalVolume *Geometry::ConstructDetector()
   // Placement of the 'Pixel Detector' to the world: Put the 'global envelop'
   G4double pos_X_LogV_PixEnvG = 0.0 * cm;  // X-location LogV_PixEnvG
   G4double pos_Y_LogV_PixEnvG = 1.0 * cm;  // Y-location LogV_PixEnvG
-  G4double pos_Z_LogV_PixEnvG = -3.5 * cm; // Z-location LogV_PixEnvG
+  G4double pos_Z_LogV_PixEnvG = -4.0 * cm; // Z-location LogV_PixEnvG
   auto threeVect_LogV_PixEnvG =
       G4ThreeVector(pos_X_LogV_PixEnvG, pos_Y_LogV_PixEnvG, pos_Z_LogV_PixEnvG);
   auto rotMtrx_LogV_PixEnvG = G4RotationMatrix();
@@ -238,7 +238,7 @@ G4VPhysicalVolume *Geometry::ConstructDetector()
   auto trans3D_LogV_PixEnvG =
       G4Transform3D(rotMtrx_LogV_PixEnvG, threeVect_LogV_PixEnvG);
 
-  G4int copyNum_LogV_PixEnvG = 2000; // Set ID number of LogV_PixEnvG
+  //  G4int copyNum_LogV_PixEnvG = 2000; // Set ID number of LogV_PixEnvG
   //  new G4PVPlacement(trans3D_LogV_PixEnvG, "PhysVol_PixEnvG", logVol_PixEnvG,
   //                    physVol_World, false, copyNum_LogV_PixEnvG);
 
@@ -247,12 +247,10 @@ G4VPhysicalVolume *Geometry::ConstructDetector()
   ////////////////////////////////////////////////////////
   auto aSV = new SensitiveVolume("SensitiveVolume");
   logVol_detector->SetSensitiveDetector(aSV); // Add sensitivity
-  auto pixelSV = new SensitiveVolume("SensitiveVolumePixel");
-  logVol_PixElmt->SetSensitiveDetector(pixelSV); // Add sensitivity
+  logVol_PixElmt->SetSensitiveDetector(aSV);  // Add sensitivity
 
   auto SDman = G4SDManager::GetSDMpointer();
   SDman->AddNewDetector(aSV);
-  SDman->AddNewDetector(pixelSV);
 
   // Return the physical world
   return physVol_World;
