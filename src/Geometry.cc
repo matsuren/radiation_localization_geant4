@@ -7,20 +7,27 @@
 #include "G4NistManager.hh"
 #include "G4PVPlacement.hh"
 #include "G4RotationMatrix.hh"
+#include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4ThreeVector.hh"
 #include "G4Transform3D.hh"
 #include "G4Tubs.hh"
 #include "G4VPhysicalVolume.hh"
 #include "G4VisAttributes.hh"
+#include "GeometryMessenger.hh"
 #include "SensitiveVolume.hh"
 #include <G4PVReplica.hh>
 #include <G4SDManager.hh>
 
 //------------------------------------------------------------------------------
-Geometry::Geometry() = default;
+Geometry::Geometry()
+    : pos_X_detector(0.0 * cm), pos_Y_detector(0.0 * cm),
+      pos_Z_detector(0.0 * cm), rot_Y_detector(0.0 * deg), ptr_SV(nullptr),
+      logVol_detector(nullptr), logVol_PixElmt(nullptr)
 //------------------------------------------------------------------------------
-
+{
+  messenger = std::make_unique<GeometryMessenger>(this);
+}
 //------------------------------------------------------------------------------
 Geometry::~Geometry() = default;
 //------------------------------------------------------------------------------
@@ -106,12 +113,10 @@ G4VPhysicalVolume *Geometry::ConstructWorld()
   ////////////////////////////////////////////////////////
   auto logVol_container = ConstructDetector();
   // Placement of logical volume
-  G4double pos_X_LogV = 0.0 * cm; // X-location LogV
-  G4double pos_Y_LogV = 0.0 * cm; // Y-location LogV
-  G4double pos_Z_LogV = 0.0 * cm; // Z-location LogV
   G4ThreeVector threeVect_LogV =
-      G4ThreeVector(pos_X_LogV, pos_Y_LogV, pos_Z_LogV);
+      G4ThreeVector(pos_X_detector, pos_Y_detector, pos_Z_detector);
   G4RotationMatrix rotMtrx_LogV = G4RotationMatrix();
+  rotMtrx_LogV.rotateY(rot_Y_detector);
   G4Transform3D trans3D_LogV = G4Transform3D(rotMtrx_LogV, threeVect_LogV);
   copyNum_LogV = 999; // Set ID number of LogV
 
@@ -139,9 +144,9 @@ G4VPhysicalVolume *Geometry::ConstructWorld()
   auto trans3D_LogV_PixEnvG =
       G4Transform3D(rotMtrx_LogV_PixEnvG, threeVect_LogV_PixEnvG);
 
-  G4int copyNum_LogV_PixEnvG = 2000; // Set ID number of LogV_PixEnvG
-  new G4PVPlacement(trans3D_LogV_PixEnvG, "PhysVol_PixEnvG", logVol_PixEnvG,
-                    physVol_World, false, copyNum_LogV_PixEnvG);
+  //  G4int copyNum_LogV_PixEnvG = 2000; // Set ID number of LogV_PixEnvG
+  //  new G4PVPlacement(trans3D_LogV_PixEnvG, "PhysVol_PixEnvG", logVol_PixEnvG,
+  //                    physVol_World, false, copyNum_LogV_PixEnvG);
 
   // Return the physical world
   return physVol_World;
@@ -181,8 +186,8 @@ G4LogicalVolume *Geometry::ConstructDetector()
     break;
   }
   // Define logical volume
-  G4LogicalVolume *logVol_detector = new G4LogicalVolume(
-      solid_detector, materi_detector, "LogVol_detector", 0, 0, 0);
+  logVol_detector = new G4LogicalVolume(solid_detector, materi_detector,
+                                        "LogVol_detector", 0, 0, 0);
 
   // Define aluminum container to block alpha and beta
   // Define the shape of solid
@@ -266,8 +271,9 @@ G4LogicalVolume *Geometry::ConstructPixelDetector()
   // Define logical volume of the pixel element
   G4Material *materi_PixElmt =
       materi_Man->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
-  auto logVol_PixElmt =
+  logVol_PixElmt =
       new G4LogicalVolume(solid_PixElmt, materi_PixElmt, "LogVol_PixElmt");
+
   //  logVol_PixElmt->SetVisAttributes(G4VisAttributes::Invisible);
 
   // Placement of pixel elements to the local envelop using Replica
@@ -284,8 +290,37 @@ void Geometry::ConstructSDandField()
   /// Sensitive volume
   /// https://twiki.cern.ch/twiki/bin/view/Geant4/QuickMigrationGuideForGeant4V10
   ////////////////////////////////////////////////////////
-  auto pSV = new SensitiveVolume("SensitiveVolume");
+  if (ptr_SV == nullptr) {
+    ptr_SV = new SensitiveVolume("SensitiveVolume");
+    G4SDManager::GetSDMpointer()->AddNewDetector(ptr_SV);
+  }
   // Add sensitivity
-  SetSensitiveDetector("LogVol_detector", pSV);
-  SetSensitiveDetector("LogVol_PixElmt", pSV);
+  SetSensitiveDetector(logVol_detector, ptr_SV);
+  //  SetSensitiveDetector(logVol_PixElmt, ptr_SV);
+}
+
+//------------------------------------------------------------------------------
+void Geometry::SetDetectorPosition(G4double x, G4double y, G4double z)
+//------------------------------------------------------------------------------
+{
+  // detector pose
+  pos_X_detector = x; // X-location LogV detector
+  pos_Y_detector = y; // Y-location LogV detector
+  pos_Z_detector = z; // Z-location LogV detector
+}
+
+//------------------------------------------------------------------------------
+void Geometry::SetDetectorRot(G4double x, G4double y, G4double z)
+//------------------------------------------------------------------------------
+{
+  rot_Y_detector = y; // Y-rotation LogV detector
+  x;
+  z;
+}
+
+//------------------------------------------------------------------------------
+void Geometry::UpdateGeometry()
+//------------------------------------------------------------------------------
+{
+  G4RunManager::GetRunManager()->ReinitializeGeometry();
 }

@@ -6,11 +6,9 @@
 #include "G4Event.hh"
 #include "G4EventManager.hh"
 #include "G4HCofThisEvent.hh"
-#include "G4ParticleDefinition.hh"
 #include "G4Step.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4TouchableHistory.hh"
-#include "G4Track.hh"
 
 //------------------------------------------------------------------------------
 SensitiveVolume::SensitiveVolume(G4String name) : G4VSensitiveDetector(name) {}
