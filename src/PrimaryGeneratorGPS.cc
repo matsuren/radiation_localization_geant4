@@ -1,7 +1,6 @@
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // PrimaryGeneratorGPS.cc
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 #include "PrimaryGeneratorGPS.hh"
 #include "G4GeneralParticleSource.hh"
 

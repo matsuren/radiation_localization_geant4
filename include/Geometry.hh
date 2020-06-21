@@ -16,8 +16,11 @@ public:
   ~Geometry() override;
 
   G4VPhysicalVolume *Construct() override;
+  void ConstructSDandField() override;
 
 private:
-  G4VPhysicalVolume *ConstructDetector();
+  G4VPhysicalVolume *ConstructWorld();
+  G4LogicalVolume *ConstructDetector();
+  G4LogicalVolume *ConstructPixelDetector();
 };
 #endif

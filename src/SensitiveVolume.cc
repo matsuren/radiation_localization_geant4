@@ -56,7 +56,8 @@ G4bool SensitiveVolume::ProcessHits(G4Step *aStep, G4TouchableHistory *) {
   // get total energy deposit in this step "edep"  and  accumulate it in
   // "sum_eDep"
   G4double edep = aStep->GetTotalEnergyDeposit();
-  G4cout << " ## --- ProcessHits --- ## " << edep / keV << " keV" << G4endl;
+  if (edep == 0.0)
+    return true;
 
   // get name
   auto physvol_name = pre->GetTouchable()->GetVolume()->GetName();
@@ -65,16 +66,17 @@ G4bool SensitiveVolume::ProcessHits(G4Step *aStep, G4TouchableHistory *) {
     G4int replicaNo1 = pre->GetTouchableHandle()->GetReplicaNumber(1);
     G4cout << "Pixel hit location: " << replicaNo0 << ", " << replicaNo1
            << " Energy: " << edep / keV << " keV" << G4endl;
-  }
-
-  // get step length and accumulate it
-  G4double stepLength = 0.;
-  if (aStep->GetTrack()->GetDefinition()->GetPDGCharge() != 0.) {
-    stepLength = aStep->GetStepLength();
-  }
-  if (copyNo == 1000) {
-    sum_eDep = sum_eDep + edep;
-    sum_stepLength = sum_stepLength + stepLength;
+  } else {
+    G4cout << " ## --- ProcessHits --- ## " << edep / keV << " keV" << G4endl;
+    // get step length and accumulate it
+    G4double stepLength = 0.;
+    if (aStep->GetTrack()->GetDefinition()->GetPDGCharge() != 0.) {
+      stepLength = aStep->GetStepLength();
+    }
+    if (copyNo == 1000) {
+      sum_eDep = sum_eDep + edep;
+      sum_stepLength = sum_stepLength + stepLength;
+    }
   }
 
   return true;

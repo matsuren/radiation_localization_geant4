@@ -1,6 +1,5 @@
 #include "RunAction.hh"
 #include "Analysis.hh"
-
 #include "G4Run.hh"
 #include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
