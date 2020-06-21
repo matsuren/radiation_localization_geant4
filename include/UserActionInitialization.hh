@@ -1,8 +1,7 @@
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // UserActionInitialization.hh
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#ifndef UserActionInitialization_h
-#define UserActionInitialization_h 1
+#pragma once
 
 #include "G4VUserActionInitialization.hh"
 
@@ -16,4 +15,3 @@ public:
 
   void Build() const override;
 };
-#endif

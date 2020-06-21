@@ -1,8 +1,7 @@
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // PrimaryGenerator.hh
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#ifndef PrimaryGenerator_h
-#define PrimaryGenerator_h 1
+#pragma once
 
 #include "G4VUserPrimaryGeneratorAction.hh"
 class G4Event;
@@ -22,4 +21,3 @@ public:
 private:
   G4ParticleGun *fpParticleGun;
 };
-#endif

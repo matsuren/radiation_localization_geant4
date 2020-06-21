@@ -1,8 +1,7 @@
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // SensitiveVolume.hh
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#ifndef SensitiveVolume_h
-#define SensitiveVolume_h 1
+#pragma once
 
 #include "G4VSensitiveDetector.hh"
 class G4Step;
@@ -24,4 +23,3 @@ private:
   G4double sum_eDep;
   G4double sum_stepLength;
 };
-#endif

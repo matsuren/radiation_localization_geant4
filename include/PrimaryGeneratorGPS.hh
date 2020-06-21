@@ -1,8 +1,7 @@
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // PrimaryGeneratorGPS.hh
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#ifndef PrimaryGeneratorGPS_h
-#define PrimaryGeneratorGPS_h 1
+#pragma once
 
 #include "G4VUserPrimaryGeneratorAction.hh"
 class G4Event;
@@ -22,4 +21,3 @@ public:
 private:
   G4GeneralParticleSource *fpParticleGPS;
 };
-#endif

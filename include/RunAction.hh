@@ -1,5 +1,4 @@
-#ifndef RunAction_h
-#define RunAction_h 1
+#pragma once
 
 #include "G4UserRunAction.hh"
 #include "globals.hh"
@@ -14,5 +13,3 @@ public:
   virtual void BeginOfRunAction(const G4Run *);
   virtual void EndOfRunAction(const G4Run *);
 };
-
-#endif
