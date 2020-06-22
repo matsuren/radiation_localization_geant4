@@ -144,9 +144,9 @@ G4VPhysicalVolume *Geometry::ConstructWorld()
   auto trans3D_LogV_PixEnvG =
       G4Transform3D(rotMtrx_LogV_PixEnvG, threeVect_LogV_PixEnvG);
 
-  //  G4int copyNum_LogV_PixEnvG = 2000; // Set ID number of LogV_PixEnvG
-  //  new G4PVPlacement(trans3D_LogV_PixEnvG, "PhysVol_PixEnvG", logVol_PixEnvG,
-  //                    physVol_World, false, copyNum_LogV_PixEnvG);
+  G4int copyNum_LogV_PixEnvG = 2000; // Set ID number of LogV_PixEnvG
+  new G4PVPlacement(trans3D_LogV_PixEnvG, "PhysVol_PixEnvG", logVol_PixEnvG,
+                    physVol_World, false, copyNum_LogV_PixEnvG);
 
   // Return the physical world
   return physVol_World;
@@ -232,7 +232,7 @@ G4LogicalVolume *Geometry::ConstructPixelDetector()
   G4Material *materi_PixEnvG = materi_Man->FindOrBuildMaterial("G4_AIR");
   auto logVol_PixEnvG =
       new G4LogicalVolume(solid_PixEnvG, materi_PixEnvG, "LogVol_PixEnvG");
-  logVol_PixEnvG->SetVisAttributes(G4VisAttributes::Invisible);
+  //  logVol_PixEnvG->SetVisAttributes(G4VisAttributes::Invisible);
 
   // Define 'Pixel Detector' - Local Envelop (divided the global envelop in
   // Y-direction) Define the shape of the local envelop
@@ -250,7 +250,7 @@ G4LogicalVolume *Geometry::ConstructPixelDetector()
   G4Material *materi_PixEnvL = materi_Man->FindOrBuildMaterial("G4_AIR");
   auto logVol_PixEnvL =
       new G4LogicalVolume(solid_PixEnvL, materi_PixEnvL, "LogVol_PixEnvL");
-  // logVol_PixEnvL->SetVisAttributes ( G4VisAttributes::Invisible );
+  logVol_PixEnvL->SetVisAttributes(G4VisAttributes::Invisible);
 
   // Placement of the local envelop to the global envelop using Replica
   new G4PVReplica("PhysVol_PixEnvL", logVol_PixEnvL, logVol_PixEnvG, kYAxis,
@@ -273,7 +273,11 @@ G4LogicalVolume *Geometry::ConstructPixelDetector()
       materi_Man->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
   logVol_PixElmt =
       new G4LogicalVolume(solid_PixElmt, materi_PixElmt, "LogVol_PixElmt");
-
+  // Add color
+  auto color = G4Colour(1.0, 0.0, 0.0, 0.1);
+  G4VisAttributes *attribute = new G4VisAttributes(color);
+  attribute->SetForceSolid(true);
+  logVol_PixElmt->SetVisAttributes(attribute);
   //  logVol_PixElmt->SetVisAttributes(G4VisAttributes::Invisible);
 
   // Placement of pixel elements to the local envelop using Replica
@@ -295,8 +299,10 @@ void Geometry::ConstructSDandField()
     G4SDManager::GetSDMpointer()->AddNewDetector(ptr_SV);
   }
   // Add sensitivity
-  SetSensitiveDetector(logVol_detector, ptr_SV);
-  //  SetSensitiveDetector(logVol_PixElmt, ptr_SV);
+  if (logVol_detector)
+    SetSensitiveDetector(logVol_detector, ptr_SV);
+  if (logVol_PixElmt)
+    SetSensitiveDetector(logVol_PixElmt, ptr_SV);
 }
 
 //------------------------------------------------------------------------------
