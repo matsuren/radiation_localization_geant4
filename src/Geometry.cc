@@ -21,7 +21,7 @@
 
 //------------------------------------------------------------------------------
 Geometry::Geometry()
-    : pos_X_detector(0.0 * cm), pos_Y_detector(0.0 * cm),
+    : pos_X_detector(0.0 * cm), pos_Y_detector(4.0 * cm),
       pos_Z_detector(0.0 * cm), rot_Y_detector(0.0 * deg), ptr_SV(nullptr),
       logVol_detector(nullptr), logVol_PixElmt(nullptr)
 //------------------------------------------------------------------------------
@@ -51,9 +51,9 @@ G4VPhysicalVolume *Geometry::ConstructWorld()
   /// Define World Volume
   ////////////////////////////////////////////////////////
   // Define the shape of solid
-  G4double leng_X_World = 0.7 * m; // X-full-length of world
-  G4double leng_Y_World = 0.7 * m; // Y-full-length of world
-  G4double leng_Z_World = 0.7 * m; // Z-full-length of world
+  G4double leng_X_World = 2.0 * m; // X-full-length of world
+  G4double leng_Y_World = 2.0 * m; // Y-full-length of world
+  G4double leng_Z_World = 2.0 * m; // Z-full-length of world
   G4Box *solid_World = new G4Box("Solid_World", leng_X_World / 2.0,
                                  leng_Y_World / 2.0, leng_Z_World / 2.0);
 
@@ -70,43 +70,30 @@ G4VPhysicalVolume *Geometry::ConstructWorld()
 
   G4int copyNum_LogV = 1;
   ////////////////////////////////////////////////////////
-  /// Define Lead box
+  /// Concrete ground
   ////////////////////////////////////////////////////////
-  G4LogicalVolume *logVol_lead_inside = nullptr;
-  if (false) {
-    // Define 'lead box'
-    // Define the shape of solid
-    G4double leng_X_lead = 16.0 * cm; // X-full-length of water box
-    G4double leng_Y_lead = 16.0 * cm; // Y-full-length of water box
-    G4double leng_Z_lead = 16.0 * cm; // Z-full-length of water box
-    auto solid_lead = new G4Box("Solid_lead", leng_X_lead / 2.0,
-                                leng_Y_lead / 2.0, leng_Z_lead / 2.0);
+  // Define the shape of solid
+  G4double leng_X_ground = 2.0 * m; // X-full-length of world
+  G4double leng_Y_ground = 0.5 * m; // Y-full-length of world
+  G4double leng_Z_ground = 2.0 * m; // Z-full-length of world
+  G4Box *solid_ground = new G4Box("Solid_ground", leng_X_ground / 2.0,
+                                  leng_Y_ground / 2.0, leng_Z_ground / 2.0);
 
-    // Define logical volume
-    auto logVol_lead = new G4LogicalVolume(
-        solid_lead, materi_Man->FindOrBuildMaterial("G4_Pb"), "LogVol_lead", 0,
-        0, 0);
-    G4double pos_X_lead = 0.0 * cm; // X-location LogV
-    G4double pos_Y_lead = 0.0 * cm; // Y-location LogV
-    G4double pos_Z_lead = 0.0 * cm; // Z-location LogV
-    auto threeVect_lead = G4ThreeVector(pos_X_lead, pos_Y_lead, pos_Z_lead);
-    auto rotMtrx_lead = G4RotationMatrix();
-    auto trans3D_lead = G4Transform3D(rotMtrx_lead, threeVect_lead);
-    copyNum_LogV = 900; // Set ID number of LogV
-    new G4PVPlacement(trans3D_lead, "PhysVol_lead", logVol_lead, physVol_World,
-                      false, copyNum_LogV, true);
+  // Define logical volume
+  G4Material *materi_ground = materi_Man->FindOrBuildMaterial("G4_CONCRETE");
+  G4LogicalVolume *logVol_ground =
+      new G4LogicalVolume(solid_ground, materi_ground, "LogVol_ground");
+  auto color_green = G4Colour(0.0, 1.0, 0.0, 0.4);
+  G4VisAttributes *attribute = new G4VisAttributes(color_green);
+  attribute->SetForceSolid(true);
+  logVol_ground->SetVisAttributes(attribute);
 
-    // lead inside
-    auto solid_lead_inside = new G4Box(
-        "Solid_lead_inside", (leng_X_lead - 6.0 * cm) / 2.0,
-        (leng_Y_lead - 6.0 * cm) / 2.0, (leng_Z_lead - 6.0 * cm) / 2.0);
-    logVol_lead_inside = new G4LogicalVolume(
-        solid_lead_inside, materi_Man->FindOrBuildMaterial("G4_AIR"),
-        "LogVol_lead_inside", 0, 0, 0);
-    copyNum_LogV = 901; // Set ID number of LogV
-    new G4PVPlacement(trans3D_lead, logVol_lead_inside, "PhysVol_lead_inside",
-                      logVol_lead, false, copyNum_LogV, true);
-  }
+  // Placement of logical volume
+  copyNum_LogV = 1;
+  auto trans3D_ground = G4Transform3D(
+      G4RotationMatrix(), G4ThreeVector(0, -leng_Y_ground / 2 - 1 * mm, 0));
+  new G4PVPlacement(trans3D_ground, "PhysVol_ground", logVol_ground,
+                    physVol_World, false, copyNum_LogV, true);
 
   ////////////////////////////////////////////////////////
   /// Construct Detector
@@ -120,14 +107,8 @@ G4VPhysicalVolume *Geometry::ConstructWorld()
   G4Transform3D trans3D_LogV = G4Transform3D(rotMtrx_LogV, threeVect_LogV);
   copyNum_LogV = 999; // Set ID number of LogV
 
-  if (logVol_lead_inside) {
-    // add inside lead box
-    new G4PVPlacement(trans3D_LogV, logVol_container, "PhysVol_container",
-                      logVol_lead_inside, false, copyNum_LogV, true);
-  } else {
-    new G4PVPlacement(trans3D_LogV, "PhysVol_container", logVol_container,
-                      physVol_World, false, copyNum_LogV, true);
-  }
+  new G4PVPlacement(trans3D_LogV, "PhysVol_container", logVol_container,
+                    physVol_World, false, copyNum_LogV, true);
 
   ////////////////////////////////////////////////////////
   /// Pixel Detector
@@ -144,9 +125,9 @@ G4VPhysicalVolume *Geometry::ConstructWorld()
   auto trans3D_LogV_PixEnvG =
       G4Transform3D(rotMtrx_LogV_PixEnvG, threeVect_LogV_PixEnvG);
 
-  G4int copyNum_LogV_PixEnvG = 2000; // Set ID number of LogV_PixEnvG
-  new G4PVPlacement(trans3D_LogV_PixEnvG, "PhysVol_PixEnvG", logVol_PixEnvG,
-                    physVol_World, false, copyNum_LogV_PixEnvG);
+  //  G4int copyNum_LogV_PixEnvG = 2000; // Set ID number of LogV_PixEnvG
+  //  new G4PVPlacement(trans3D_LogV_PixEnvG, "PhysVol_PixEnvG", logVol_PixEnvG,
+  //                    physVol_World, false, copyNum_LogV_PixEnvG);
 
   // Return the physical world
   return physVol_World;
@@ -296,6 +277,7 @@ void Geometry::ConstructSDandField()
   ////////////////////////////////////////////////////////
   if (ptr_SV == nullptr) {
     ptr_SV = new SensitiveVolume("SensitiveVolume");
+    ptr_SV->SetVerboseLevel(0);
     G4SDManager::GetSDMpointer()->AddNewDetector(ptr_SV);
   }
   // Add sensitivity
@@ -329,4 +311,11 @@ void Geometry::UpdateGeometry()
 //------------------------------------------------------------------------------
 {
   G4RunManager::GetRunManager()->ReinitializeGeometry();
+}
+
+//------------------------------------------------------------------------------
+void Geometry::SetDetectorVerboseLevel(G4int lv)
+//------------------------------------------------------------------------------
+{
+  G4SDManager::GetSDMpointer()->SetVerboseLevel(lv);
 }

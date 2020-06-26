@@ -1,6 +1,7 @@
 #include "GeometryMessenger.hh"
 #include "G4UIcmdWith3VectorAndUnit.hh"
 #include "G4UIcmdWithADoubleAndUnit.hh"
+#include "G4UIcmdWithAnInteger.hh"
 #include "G4UIcmdWithoutParameter.hh"
 #include "G4UIdirectory.hh"
 #include <memory>
@@ -36,6 +37,17 @@ GeometryMessenger::GeometryMessenger(Geometry *geometry)
   update_cmd->SetGuidance("This command MUST be applied before \"beamOn\" ");
   update_cmd->SetGuidance("if you changed geometrical value(s).");
   update_cmd->AvailableForStates(G4State_Idle);
+
+  // verbosity
+  detector_verbose_cmd =
+      std::make_unique<G4UIcmdWithAnInteger>("/my_detector/verbose", this);
+  detector_verbose_cmd->SetGuidance(
+      "Set Verbose level for sensitive detector.");
+  detector_verbose_cmd->SetGuidance(" 0 : Silent");
+  detector_verbose_cmd->SetGuidance(" 1 : Output hit information");
+  detector_verbose_cmd->SetParameterName("level", false);
+  detector_verbose_cmd->AvailableForStates(G4State_Idle);
+  detector_verbose_cmd->SetRange("level>=0 && level <=1");
 }
 
 //------------------------------------------------------------------------------
@@ -54,5 +66,8 @@ void GeometryMessenger::SetNewValue(G4UIcommand *command, G4String newValue)
     ptr_geometry->SetDetectorRot(0, rot_y, 0);
   } else if (command == update_cmd.get()) {
     ptr_geometry->UpdateGeometry();
+  } else if (command == detector_verbose_cmd.get()) {
+    auto lv = detector_verbose_cmd->GetNewIntValue(newValue);
+    ptr_geometry->SetDetectorVerboseLevel(lv);
   }
 }

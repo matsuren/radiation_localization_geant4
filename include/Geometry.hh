@@ -41,4 +41,5 @@ public:
   void SetDetectorPosition(G4double x, G4double y, G4double z);
   void SetDetectorRot(G4double x, G4double y, G4double z);
   void UpdateGeometry();
+  void SetDetectorVerboseLevel(G4int lv);
 };

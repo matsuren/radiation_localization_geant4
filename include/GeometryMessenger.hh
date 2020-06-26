@@ -8,6 +8,7 @@ class Geometry;
 class G4UIcmdWith3VectorAndUnit;
 class G4UIcmdWithADoubleAndUnit;
 class G4UIcmdWithoutParameter;
+class G4UIcmdWithAnInteger;
 
 class GeometryMessenger : public G4UImessenger {
 public:
@@ -24,4 +25,5 @@ public:
   std::unique_ptr<G4UIcmdWith3VectorAndUnit> detector_position_cmd;
   std::unique_ptr<G4UIcmdWithADoubleAndUnit> detector_rotation_cmd;
   std::unique_ptr<G4UIcmdWithoutParameter> update_cmd;
+  std::unique_ptr<G4UIcmdWithAnInteger> detector_verbose_cmd;
 };

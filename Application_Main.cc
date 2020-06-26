@@ -12,7 +12,7 @@
 #include "FTFP_BERT.hh"
 
 //-------------------------------------------------------------------------------
-int main(int argc, char   **argv)
+int main(int argc, char **argv)
 //-------------------------------------------------------------------------------
 {
   // Construct the default run manager
@@ -39,17 +39,62 @@ int main(int argc, char   **argv)
   G4UImanager *uiManager = G4UImanager::GetUIpointer();
 
   // Switch batch or interactive mode
-  if (argc == 1) { // Interactive mode - no command argument
+  bool interactive_mode = argc == 1;
+  //  bool interactive_mode = false;
+  if (interactive_mode) { // Interactive mode - no command argument
     auto uiExec = new G4UIExecutive(argc, argv);
-    uiManager->ApplyCommand("/control/execute init_setup.mac");
     // Enable analysis
+    uiManager->ApplyCommand("/analysis/h1/set 0 1 0.65 0.67 MeV");
     uiManager->ApplyCommand("/analysis/setActivation 0");
+
+    // Initialize
+    uiManager->ApplyCommand("/control/execute init_setup.mac");
+
     // Start GUI
     uiExec->SessionStart();
     delete uiExec;
-  } else { // Batch mode - 1st command argument is a macro-filename
-    G4String macroName = argv[1];
-    uiManager->ApplyCommand("/control/execute " + macroName);
+  } else { // Batch mode
+    const std::string run_cmd = "/run/beamOn 10000";
+    auto setPosCmd = [](double x, double z) {
+      return "/my_detector/position " + std::to_string(x) + " 5 " +
+             std::to_string(z) + " cm";
+    };
+    auto changeFnameCmd = [](int id) {
+      std::ostringstream out;
+      out << std::internal << std::setfill('0') << std::setw(3) << id;
+      return "/analysis/setFileName detector_loc_" + out.str();
+    };
+
+    // Enable analysis
+    uiManager->ApplyCommand("/analysis/setFileName detector_loc_000");
+    uiManager->ApplyCommand("/analysis/h1/set 0 1 0.65 0.67 MeV");
+    uiManager->ApplyCommand("/analysis/setActivation 0");
+
+    // Initialize
+    uiManager->ApplyCommand("/control/execute init_setup.mac");
+    uiManager->ApplyCommand("/tracking/verbose 0");
+
+    // Run
+    // Change detector position
+    //    uiManager->ApplyCommand("/analysis/setFileName detector_loc_001");
+    //    uiManager->ApplyCommand("/my_detector/position 0 5 0 cm");
+    //    uiManager->ApplyCommand("/my_detector/update");
+    //    uiManager->ApplyCommand(run_cmd);
+    int file_id = 0;
+    const int MAX_I = 10;
+    const int MAX_J = 10;
+    const double factor = 2; // id to cm
+    for (int j = 0; j < MAX_J; ++j) {
+      for (int i = 0; i < MAX_I; ++i) {
+        const double x_pos = factor * (i - (MAX_I - 1) / 2);
+        const double z_pos = factor * (j - (MAX_J - 1) / 2);
+        uiManager->ApplyCommand(changeFnameCmd(file_id));
+        uiManager->ApplyCommand(setPosCmd(x_pos, z_pos));
+        uiManager->ApplyCommand("/my_detector/update");
+        uiManager->ApplyCommand(run_cmd);
+        file_id++;
+      }
+    }
   }
 
   // Job termination

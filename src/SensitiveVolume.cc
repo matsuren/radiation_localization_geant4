@@ -22,12 +22,16 @@ void SensitiveVolume::Initialize(G4HCofThisEvent * /* HCE */) {
   event_id = event->GetEventID();
   sum_eDep = 0.;
   sum_stepLength = 0.;
-  G4cout << "== Initialize sum_eDeps. Event id:" << event_id << G4endl;
+  if (verboseLevel > 0) {
+    G4cout << "== Initialize sum_eDeps. Event id:" << event_id << G4endl;
+  }
 }
 //------------------------------------------------------------------------------
 void SensitiveVolume::EndOfEvent(G4HCofThisEvent *) {
   //
-  G4cout << " sum_eDep = " << sum_eDep / keV << " keV" << G4endl;
+  if (verboseLevel > 0) {
+    G4cout << " sum_eDep = " << sum_eDep / keV << " keV" << G4endl;
+  }
   //" sum_stepLength = " << sum_stepLength << G4endl;
 
   // save
@@ -62,10 +66,15 @@ G4bool SensitiveVolume::ProcessHits(G4Step *aStep, G4TouchableHistory *) {
   if (physvol_name == "PhysVol_PixElmt" && edep != 0.0) {
     G4int replicaNo0 = pre->GetTouchableHandle()->GetReplicaNumber(0);
     G4int replicaNo1 = pre->GetTouchableHandle()->GetReplicaNumber(1);
-    G4cout << "Pixel hit location: " << replicaNo0 << ", " << replicaNo1
-           << " Energy: " << edep / keV << " keV" << G4endl;
+    if (verboseLevel > 0) {
+      G4cout << "Pixel hit location: " << replicaNo0 << ", " << replicaNo1
+             << " Energy: " << edep / keV << " keV" << G4endl;
+    }
   } else {
-    G4cout << " ## --- ProcessHits --- ## " << edep / keV << " keV" << G4endl;
+    //    G4cout << "verboseLevel: " << verboseLevel << G4endl;
+    if (verboseLevel > 0) {
+      G4cout << " ## --- ProcessHits --- ## " << edep / keV << " keV" << G4endl;
+    }
     // get step length and accumulate it
     G4double stepLength = 0.;
     if (aStep->GetTrack()->GetDefinition()->GetPDGCharge() != 0.) {
