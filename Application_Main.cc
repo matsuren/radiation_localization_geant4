@@ -55,9 +55,10 @@ int main(int argc, char **argv)
     delete uiExec;
   } else { // Batch mode
     const std::string run_cmd = "/run/beamOn 10000";
-    auto setPosCmd = [](double x, double z) {
-      return "/my_detector/position " + std::to_string(x) + " 5 " +
-             std::to_string(z) + " cm";
+    const double y_height = 5.0;
+    auto setPosCmd = [&y_height](double x, double z) {
+      return "/my_detector/position " + std::to_string(x) + " " +
+             std::to_string(y_height) + " " + std::to_string(z) + " cm";
     };
     auto changeFnameCmd = [](int id) {
       std::ostringstream out;
@@ -80,10 +81,12 @@ int main(int argc, char **argv)
     //    uiManager->ApplyCommand("/my_detector/position 0 5 0 cm");
     //    uiManager->ApplyCommand("/my_detector/update");
     //    uiManager->ApplyCommand(run_cmd);
+    std::ofstream pos_file;
+    pos_file.open("detector_position.txt");
     int file_id = 0;
-    const int MAX_I = 10;
-    const int MAX_J = 10;
-    const double factor = 2; // id to cm
+    const int MAX_I = 21;
+    const int MAX_J = 21;
+    const double factor = 1; // id to cm
     for (int j = 0; j < MAX_J; ++j) {
       for (int i = 0; i < MAX_I; ++i) {
         const double x_pos = factor * (i - (MAX_I - 1) / 2);
@@ -93,8 +96,11 @@ int main(int argc, char **argv)
         uiManager->ApplyCommand("/my_detector/update");
         uiManager->ApplyCommand(run_cmd);
         file_id++;
+        // output position
+        pos_file << x_pos << ", " << y_height << ", " << z_pos << "\n";
       }
     }
+    pos_file.close();
   }
 
   // Job termination

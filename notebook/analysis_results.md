@@ -109,7 +109,7 @@ import matplotlib.pyplot as plt
 ```
 
 ```python
-width_len = 10
+width_len = 21
 data = []
 for i in range(width_len*width_len):
     fname = f'../build/detector_loc_{i:03}.xml'
@@ -129,6 +129,101 @@ viz = viz.astype(np.float)/viz.max()
 plt.imshow(viz)
 ```
 
+# Localization
+## define variables
+
 ```python
+b_measure = np.array(data)
+x_b = np.genfromtxt('../build/detector_position.txt', delimiter=',')
+assert x_b.shape[0] == len(b_measure), 'Number of measument should be equal to number of position'
+```
+
+```python
+# radiation source candidate
+x_q = []
+MAX_I = 17
+MAX_J = 17
+factor = 1.5
+for j in range(MAX_J):
+    for i in range(MAX_I):
+        x_pos = factor * (i - (MAX_I - 1) / 2);
+        z_pos = factor * (j - (MAX_J - 1) / 2);
+        x_q.append([x_pos, 0, z_pos])
+x_q = np.array(x_q)
+```
+
+```python
+# distance matrix
+radiation_factor = 100
+dist_mat = (x_b[:, np.newaxis]-x_q[np.newaxis])
+dist_mat = np.linalg.norm(dist_mat, axis=2)
+A = radiation_factor/dist_mat
+```
+
+## Optimization
+
+```python
+# visualize square image
+def imshow(src):
+    l = int(np.sqrt(src.shape))
+    plt.imshow(src.reshape(l,l))
+```
+
+```python
+# initial guess for radiation distribution
+M = x_q.shape[0]
+q_max = 10
+q_init = 1/q_max
+q = np.array([q_init]*M)
+```
+
+```python
+imshow(q)
+```
+
+```python
+b_ave = A.dot(q)
+imshow(b_ave)
+```
+
+```python
+def score_func(q):
+    global A, b_measure
+    b_ave = A.dot(q)
+    score = np.sum(b_measure*np.log(b_ave))-np.sum(b_ave)
+    return score
+
+def grad_func(q):
+    global A, b_measure
+    b_ave = A.dot(q)
+    grad_tmp = (b_measure/b_ave)[:,np.newaxis]*A
+    grad = grad_tmp.sum(axis=0) - A.sum(axis=0)
+    return grad
+```
+
+```python
+optim_factor = 0.00005
+init_score = score_func(q)
+print(f'initial score:{init_score}')
+```
+
+```python
+for i in range(1, 50):
+    q_diff = grad_func(q)
+    q += optim_factor*q_diff
+    
+    # bound > 0
+    q[q<0]=0
+    
+    score = score_func(q)
+    if i%2==0:
+        plt.figure()
+        plt.title(f'iter:{i} score:{score} q_max:{q.max():.3}, q_min:{q.min():.3}')
+        imshow(q)
+```
+
+```python
+max_idx = np.argmax(q)
+print(f'max intensity location: {x_q[max_idx]}')
 
 ```
