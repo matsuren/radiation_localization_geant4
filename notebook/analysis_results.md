@@ -109,7 +109,7 @@ import matplotlib.pyplot as plt
 ```
 
 ```python
-width_len = 21
+width_len = 11
 data = []
 for i in range(width_len*width_len):
     fname = f'../build/detector_loc_{i:03}.xml'
@@ -141,9 +141,9 @@ assert x_b.shape[0] == len(b_measure), 'Number of measument should be equal to n
 ```python
 # radiation source candidate
 x_q = []
-MAX_I = 17
-MAX_J = 17
-factor = 1.5
+MAX_I = 25
+MAX_J = 25
+factor = 0.9
 for j in range(MAX_J):
     for i in range(MAX_I):
         x_pos = factor * (i - (MAX_I - 1) / 2);
@@ -158,6 +158,13 @@ radiation_factor = 100
 dist_mat = (x_b[:, np.newaxis]-x_q[np.newaxis])
 dist_mat = np.linalg.norm(dist_mat, axis=2)
 A = radiation_factor/dist_mat
+```
+
+```python
+# # save for MATLAB
+# import numpy as np
+# import scipy.io
+# scipy.io.savemat('data_for_matlab.mat', dict(A=A, b_measure=b_measure, x_q=x_q, x_b=x_b))
 ```
 
 ## Optimization
@@ -201,8 +208,10 @@ def grad_func(q):
     return grad
 ```
 
+### Gradient decent
+
 ```python
-optim_factor = 0.00005
+optim_factor = 0.0005
 init_score = score_func(q)
 print(f'initial score:{init_score}')
 ```
@@ -213,7 +222,7 @@ for i in range(1, 50):
     q += optim_factor*q_diff
     
     # bound > 0
-    q[q<0]=0
+    q[q<0]=0.0000001
     
     score = score_func(q)
     if i%2==0:
@@ -225,5 +234,68 @@ for i in range(1, 50):
 ```python
 max_idx = np.argmax(q)
 print(f'max intensity location: {x_q[max_idx]}')
+
+```
+
+### SLSQP
+Sequential (least-squares) quadratic programming (SQP)
+
+```python
+from scipy import optimize
+```
+
+```python
+# initial guess for radiation distribution
+M = x_q.shape[0]
+q_max = 10
+q_init = 1/q_max
+q = np.array([q_init]*M)
+
+# bound
+lb = [0.000001]*M
+ub = [np.inf]*M
+bounds = optimize.Bounds(lb, ub)
+
+# method
+method='SLSQP'
+options={'disp': True, 'iprint':2}
+# method='L-BFGS-B'
+# options={'disp': True, 'iprint':101, 'maxfun': 150000}
+
+# method='trust-constr'
+# options={'disp': True, 'verbose':2}
+
+# Formulated as error function
+inv_score_fun = lambda x:-score_func(x)
+inv_grad_fun = lambda x:-grad_func(x)
+```
+
+```python
+# gradient check
+for _ in range(3):
+    rand_q = np.random.rand(M)
+    err = optimize.check_grad(inv_score_fun, inv_grad_fun, rand_q)
+    err/=inv_grad_fun(rand_q).mean()
+    print(f'Error ratio:{err:.4}')
+```
+
+```python
+res = optimize.minimize(inv_score_fun, q, method=method, bounds=bounds, options=options)
+print(res.message)
+```
+
+```python
+print(f'Final score:{-res.fun}')
+imshow(res.x)
+```
+
+```python
+thresh = res.x.max()/10
+idx = np.where(res.x>thresh)
+print(f'high intensity location:\n {x_q[idx[0]]}')
+imshow(res.x>thresh)
+```
+
+```python
 
 ```
