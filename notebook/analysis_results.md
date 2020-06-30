@@ -49,13 +49,12 @@ assert float(xml_axis.attrib['max']) < 0.7
 ```
 
 ```python
-count = -1
+count = 0
 for it in child.findall('data1d/bin1d'):
     if it.attrib['binNum'] == '0':
         count = int(it.attrib['entries'])
-        print('count:', count)
         break
-assert count > 0, "couldn't find bin"
+print('count:', count)
 ```
 
 # Function to extract count
@@ -80,15 +79,13 @@ def get_count_xml(fname, target_mev=0.662, debug=False):
     assert float(xml_axis.attrib['max']) < (target_mev+0.1)
     
     # get count from bin
-    count = -1
+    count = 0
     for it in child.findall('data1d/bin1d'):
         if it.attrib['binNum'] == '0':
             count = int(it.attrib['entries'])
-            if debug:
-                print('count:', count)
             break
-    assert count > 0, "couldn't find bin"
-    
+    if debug:
+        print('count:', count)
     return count
 ```
 
