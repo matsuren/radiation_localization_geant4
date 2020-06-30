@@ -89,8 +89,8 @@ int main(int argc, char **argv)
     const double factor = 2; // id to cm
     for (int j = 0; j < MAX_J; ++j) {
       for (int i = 0; i < MAX_I; ++i) {
-        const double x_pos = factor * (i - (MAX_I - 1) / 2);
-        const double z_pos = factor * (j - (MAX_J - 1) / 2);
+        const double x_pos = factor * (i - (MAX_I - 1) / 2.0);
+        const double z_pos = factor * (j - (MAX_J - 1) / 2.0);
         uiManager->ApplyCommand(changeFnameCmd(file_id));
         uiManager->ApplyCommand(setPosCmd(x_pos, z_pos));
         uiManager->ApplyCommand("/my_detector/update");
