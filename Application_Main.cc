@@ -3,6 +3,7 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #include "Geometry.hh"
 #include "UserActionInitialization.hh"
+#include <chrono>
 
 #include "G4RunManager.hh"
 #include "G4UIExecutive.hh"
@@ -87,6 +88,9 @@ int main(int argc, char **argv)
     const int MAX_I = 11;
     const int MAX_J = 11;
     const double factor = 2; // id to cm
+
+    // Start time
+    auto time_s = std::chrono::high_resolution_clock::now();
     for (int j = 0; j < MAX_J; ++j) {
       for (int i = 0; i < MAX_I; ++i) {
         const double x_pos = factor * (i - (MAX_I - 1) / 2.0);
@@ -101,6 +105,15 @@ int main(int argc, char **argv)
       }
     }
     pos_file.close();
+
+    // Elapsed time
+    auto elps = std::chrono::high_resolution_clock::now() - time_s;
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(elps);
+    G4cout << "//================================================//\n"
+           << "Total " << file_id
+           << " run. Elapsed for one run: " << ms.count() / 1000.0 / file_id
+           << "[s]\n"
+           << "//================================================//\n";
   }
 
   // Job termination
