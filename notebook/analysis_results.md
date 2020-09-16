@@ -153,7 +153,7 @@ x_q = np.array(x_q)
 # distance matrix
 radiation_factor = 100
 dist_mat = (x_b[:, np.newaxis]-x_q[np.newaxis])
-dist_mat = np.linalg.norm(dist_mat, axis=2)
+dist_mat = np.sum(dist_mat**2, axis=2)
 A = radiation_factor/dist_mat
 ```
 
@@ -208,7 +208,7 @@ def grad_func(q):
 ### Gradient decent
 
 ```python
-optim_factor = 0.0005
+optim_factor = 0.005
 init_score = score_func(q)
 print(f'initial score:{init_score}')
 ```
@@ -234,6 +234,10 @@ print(f'max intensity location: {x_q[max_idx]}')
 
 ```
 
+```python
+
+```
+
 ### SLSQP
 Sequential (least-squares) quadratic programming (SQP)
 
@@ -249,7 +253,7 @@ q_init = 1/q_max
 q = np.array([q_init]*M)
 
 # bound
-lb = [0.000001]*M
+lb = [0.000000]*M
 ub = [np.inf]*M
 bounds = optimize.Bounds(lb, ub)
 
@@ -291,6 +295,17 @@ thresh = res.x.max()/10
 idx = np.where(res.x>thresh)
 print(f'high intensity location:\n {x_q[idx[0]]}')
 imshow(res.x>thresh)
+```
+
+```python
+src = res.x
+l = int(np.sqrt(src.shape))
+img = src.reshape(l,l)
+img[15, 4]
+```
+
+```python
+img[15, 20]
 ```
 
 ```python

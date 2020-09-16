@@ -200,7 +200,8 @@ void Geometry::ConstructSDandField()
 
   if (ptr_SV == nullptr) {
     ptr_SV = new SensitiveVolume("SensitiveVolume");
-    ptr_SV->SetVerboseLevel(1);
+    //    ptr_SV->SetVerboseLevel(1);
+    ptr_SV->SetVerboseLevel(0);
     G4SDManager::GetSDMpointer()->AddNewDetector(ptr_SV);
   }
 
