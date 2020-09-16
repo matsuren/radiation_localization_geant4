@@ -21,5 +21,4 @@ public:
 private:
   G4int event_id;
   G4double sum_eDep;
-  G4double sum_stepLength;
 };

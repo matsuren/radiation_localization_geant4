@@ -1,9 +1,8 @@
 #include "RunAction.hh"
 #include "Analysis.hh"
 #include "G4Run.hh"
-#include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
-#include "G4UnitsTable.hh"
+#include "G4Threading.hh"
 
 RunAction::RunAction() : G4UserRunAction() {
   // Get analysis manager
@@ -18,8 +17,6 @@ RunAction::RunAction() : G4UserRunAction() {
   // Creating H1 histograms
   G4int id = analysisManager->CreateH1("h1:0", "sum_eDep", 50, 0., 1.5 * MeV);
   analysisManager->SetH1Activation(id, false);
-  id = analysisManager->CreateH1("h1:1","sum_stepLength", 50, 0., 5.*mm);
-  analysisManager->SetH1Activation(id, false);
 #else
   // Creation of ntuple
   analysisManager->CreateNtuple("MyNtuple", "Edep and TrackLength");
@@ -29,7 +26,10 @@ RunAction::RunAction() : G4UserRunAction() {
 #endif
 }
 
-RunAction::~RunAction() { delete G4AnalysisManager::Instance(); }
+RunAction::~RunAction() {
+  G4AnalysisManager *analysisManager = G4AnalysisManager::Instance();
+  delete analysisManager;
+}
 
 void RunAction::BeginOfRunAction(const G4Run * /*run*/) {
   // Get analysis manager

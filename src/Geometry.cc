@@ -16,14 +16,20 @@
 #include "G4VisAttributes.hh"
 #include "GeometryMessenger.hh"
 #include "SensitiveVolume.hh"
-#include <G4PVReplica.hh>
 #include <G4SDManager.hh>
+
+#include "G4GeometryManager.hh"
+#include "G4LogicalVolumeStore.hh"
+#include "G4PhysicalVolumeStore.hh"
+#include "G4SolidStore.hh"
+
+G4ThreadLocal SensitiveVolume *Geometry::ptr_SV = nullptr;
+G4ThreadLocal G4LogicalVolume *Geometry::logVol_detector = nullptr;
 
 //------------------------------------------------------------------------------
 Geometry::Geometry()
     : pos_X_detector(0.0 * cm), pos_Y_detector(4.0 * cm),
-      pos_Z_detector(0.0 * cm), rot_Y_detector(0.0 * deg), ptr_SV(nullptr),
-      logVol_detector(nullptr), logVol_PixElmt(nullptr)
+      pos_Z_detector(0.0 * cm), rot_Y_detector(0.0 * deg)
 //------------------------------------------------------------------------------
 {
   messenger = std::make_unique<GeometryMessenger>(this);
@@ -44,6 +50,13 @@ G4VPhysicalVolume *Geometry::ConstructWorld()
 //------------------------------------------------------------------------------
 {
   G4cout << " === Geometry::ConstructWorld() =====" << G4endl;
+
+  // Cleanup old geometry
+  G4GeometryManager::GetInstance()->OpenGeometry();
+  G4PhysicalVolumeStore::GetInstance()->Clean();
+  G4LogicalVolumeStore::GetInstance()->Clean();
+  G4SolidStore::GetInstance()->Clean();
+
   // Get pointer to 'Material Manager'
   G4NistManager *materi_Man = G4NistManager::Instance();
 
@@ -110,25 +123,6 @@ G4VPhysicalVolume *Geometry::ConstructWorld()
   new G4PVPlacement(trans3D_LogV, "PhysVol_container", logVol_container,
                     physVol_World, false, copyNum_LogV, true);
 
-  ////////////////////////////////////////////////////////
-  /// Pixel Detector
-  ////////////////////////////////////////////////////////
-  auto logVol_PixEnvG = ConstructPixelDetector();
-  // Placement of the 'Pixel Detector' to the world: Put the 'global envelop'
-  G4double pos_X_LogV_PixEnvG = 0.0 * cm;  // X-location LogV_PixEnvG
-  G4double pos_Y_LogV_PixEnvG = 1.0 * cm;  // Y-location LogV_PixEnvG
-  G4double pos_Z_LogV_PixEnvG = -4.0 * cm; // Z-location LogV_PixEnvG
-  auto threeVect_LogV_PixEnvG =
-      G4ThreeVector(pos_X_LogV_PixEnvG, pos_Y_LogV_PixEnvG, pos_Z_LogV_PixEnvG);
-  auto rotMtrx_LogV_PixEnvG = G4RotationMatrix();
-  rotMtrx_LogV_PixEnvG.rotateZ(20);
-  auto trans3D_LogV_PixEnvG =
-      G4Transform3D(rotMtrx_LogV_PixEnvG, threeVect_LogV_PixEnvG);
-
-  //  G4int copyNum_LogV_PixEnvG = 2000; // Set ID number of LogV_PixEnvG
-  //  new G4PVPlacement(trans3D_LogV_PixEnvG, "PhysVol_PixEnvG", logVol_PixEnvG,
-  //                    physVol_World, false, copyNum_LogV_PixEnvG);
-
   // Return the physical world
   return physVol_World;
 }
@@ -192,82 +186,6 @@ G4LogicalVolume *Geometry::ConstructDetector()
 }
 
 //------------------------------------------------------------------------------
-G4LogicalVolume *Geometry::ConstructPixelDetector()
-//------------------------------------------------------------------------------
-{
-  // Get pointer to 'Material Manager'
-  G4NistManager *materi_Man = G4NistManager::Instance();
-  ////////////////////////////////////////////////////////
-  /// Define Pixel Detector
-  ////////////////////////////////////////////////////////
-
-  // Define 'Pixel Detector' - Global Envelop
-  // Define the shape of the global envelop
-  G4double leng_X_PixEnvG = 16.8 * mm; // X-full-length of pixel: global envelop
-  G4double leng_Y_PixEnvG = 20.0 * mm; // Y-full-length of pixel: global envelop
-  G4double leng_Z_PixEnvG = 3 * mm;    // Z-full-length of pixel: global envelop
-  auto solid_PixEnvG = new G4Box("Solid_PixEnvG", leng_X_PixEnvG / 2.0,
-                                 leng_Y_PixEnvG / 2.0, leng_Z_PixEnvG / 2.0);
-
-  // Define logical volume of the global envelop
-  G4Material *materi_PixEnvG = materi_Man->FindOrBuildMaterial("G4_AIR");
-  auto logVol_PixEnvG =
-      new G4LogicalVolume(solid_PixEnvG, materi_PixEnvG, "LogVol_PixEnvG");
-  //  logVol_PixEnvG->SetVisAttributes(G4VisAttributes::Invisible);
-
-  // Define 'Pixel Detector' - Local Envelop (divided the global envelop in
-  // Y-direction) Define the shape of the local envelop
-  G4int nDiv_Y = 5; // Number of divisions in Y-direction
-  G4double leng_X_PixEnvL =
-      leng_X_PixEnvG; // X-full-length of pixel: local envelop
-  G4double leng_Y_PixEnvL =
-      leng_Y_PixEnvG / nDiv_Y; // Y-full-length of pixel: local envelop
-  G4double leng_Z_PixEnvL =
-      leng_Z_PixEnvG; // Z-full-length of pixel: local envelop
-  auto solid_PixEnvL = new G4Box("Solid_PixEnvL", leng_X_PixEnvL / 2.0,
-                                 leng_Y_PixEnvL / 2.0, leng_Z_PixEnvL / 2.0);
-
-  // Define logical volume of the local envelop
-  G4Material *materi_PixEnvL = materi_Man->FindOrBuildMaterial("G4_AIR");
-  auto logVol_PixEnvL =
-      new G4LogicalVolume(solid_PixEnvL, materi_PixEnvL, "LogVol_PixEnvL");
-  logVol_PixEnvL->SetVisAttributes(G4VisAttributes::Invisible);
-
-  // Placement of the local envelop to the global envelop using Replica
-  new G4PVReplica("PhysVol_PixEnvL", logVol_PixEnvL, logVol_PixEnvG, kYAxis,
-                  nDiv_Y, leng_Y_PixEnvL);
-
-  // Define 'Pixel Detector' - Pixel Element (divided the local envelop in
-  // X-direction) Define the shape of the pixel element
-  G4int nDiv_X = 5; // Number of divisions in Y-direction
-  G4double leng_X_PixElmt =
-      leng_X_PixEnvG / nDiv_X; // X-full-length of pixel: pixel element
-  G4double leng_Y_PixElmt =
-      leng_Y_PixEnvG / nDiv_Y; // Y-full-length of pixel: pixel element
-  G4double leng_Z_PixElmt =
-      leng_Z_PixEnvG; // Z-full-length of pixel: pixel element
-  auto solid_PixElmt = new G4Box("Solid_PixElmt", leng_X_PixElmt / 2.0,
-                                 leng_Y_PixElmt / 2.0, leng_Z_PixElmt / 2.0);
-
-  // Define logical volume of the pixel element
-  G4Material *materi_PixElmt =
-      materi_Man->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
-  logVol_PixElmt =
-      new G4LogicalVolume(solid_PixElmt, materi_PixElmt, "LogVol_PixElmt");
-  // Add color
-  auto color = G4Colour(1.0, 0.0, 0.0, 0.1);
-  G4VisAttributes *attribute = new G4VisAttributes(color);
-  attribute->SetForceSolid(true);
-  logVol_PixElmt->SetVisAttributes(attribute);
-  //  logVol_PixElmt->SetVisAttributes(G4VisAttributes::Invisible);
-
-  // Placement of pixel elements to the local envelop using Replica
-  new G4PVReplica("PhysVol_PixElmt", logVol_PixElmt, logVol_PixEnvL, kXAxis,
-                  nDiv_X, leng_X_PixElmt);
-
-  return logVol_PixEnvG;
-}
-//------------------------------------------------------------------------------
 void Geometry::ConstructSDandField()
 //------------------------------------------------------------------------------
 {
@@ -275,16 +193,19 @@ void Geometry::ConstructSDandField()
   /// Sensitive volume
   /// https://twiki.cern.ch/twiki/bin/view/Geant4/QuickMigrationGuideForGeant4V10
   ////////////////////////////////////////////////////////
+  //  ptr_SV = new G4MultiFunctionalDetector("SensitiveVolume");
+  //  G4VPrimitiveScorer* primitiv= new G4PSEnergyDeposit("edep");
+  //  ptr_SV->RegisterPrimitive(primitiv);
+  //  SetSensitiveDetector("LogVol_detector", ptr_SV);
+
   if (ptr_SV == nullptr) {
     ptr_SV = new SensitiveVolume("SensitiveVolume");
-    ptr_SV->SetVerboseLevel(0);
+    ptr_SV->SetVerboseLevel(1);
     G4SDManager::GetSDMpointer()->AddNewDetector(ptr_SV);
   }
+
   // Add sensitivity
-  if (logVol_detector)
-    SetSensitiveDetector(logVol_detector, ptr_SV);
-  if (logVol_PixElmt)
-    SetSensitiveDetector(logVol_PixElmt, ptr_SV);
+  SetSensitiveDetector("LogVol_detector", ptr_SV);
 }
 
 //------------------------------------------------------------------------------

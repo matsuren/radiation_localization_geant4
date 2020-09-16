@@ -5,7 +5,12 @@
 #include "UserActionInitialization.hh"
 #include <chrono>
 
+#ifdef G4MULTITHREADED
+#include "G4MTRunManager.hh"
+#else
 #include "G4RunManager.hh"
+#endif
+
 #include "G4UIExecutive.hh"
 #include "G4UImanager.hh"
 #include "G4VisExecutive.hh"
@@ -16,8 +21,15 @@
 int main(int argc, char **argv)
 //-------------------------------------------------------------------------------
 {
-  // Construct the default run manager
+// Construct the default run manager
+#ifdef G4MULTITHREADED
+  auto runManager = new G4MTRunManager;
+  G4int nThreads = G4Threading::G4GetNumberOfCores();
+  // Use all core - 2
+  runManager->SetNumberOfThreads(nThreads - 2);
+#else
   auto runManager = new G4RunManager;
+#endif
 
   // Set up mandatory user initialization: Geometry
   runManager->SetUserInitialization(new Geometry);

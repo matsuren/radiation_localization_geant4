@@ -13,5 +13,6 @@ public:
   UserActionInitialization();
   ~UserActionInitialization() override;
 
-  void Build() const override;
+    void Build() const override;
+    void BuildForMaster() const override;
 };

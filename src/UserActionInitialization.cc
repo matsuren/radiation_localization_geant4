@@ -19,3 +19,9 @@ void UserActionInitialization::Build() const {
   SetUserAction(new PrimaryGeneratorGPS());
   SetUserAction(new RunAction());
 }
+
+//------------------------------------------------------------------------------
+void UserActionInitialization::BuildForMaster() const {
+  SetUserAction(new RunAction());
+}
+
